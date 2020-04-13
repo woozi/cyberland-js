@@ -54,31 +54,48 @@ app.get('/:boardName/?', async function (req, res) {
         params.push(req.query.num);
         sql += ` limit $${params.length}`;
     }
-    const sqlRes = await pool.query(sql, params);
-    res.json(sqlRes.rows);
+    try {
+        const sqlRes = await pool.query(sql, params);
+        res.json(sqlRes.rows);
+    } catch (e) {
+        console.error(e);
+        res.sendStatus(400);
+    }
 });
 
 // Post endpoint
 app.post('/:boardName/?', async function (req, res) {
     // Blacklist check
-    const clientIp = req.connection.remoteAddress;
+    const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     if (ipBlacklist.has(clientIp)) {
+        console.log(`Client ${clientIp} is blacklisted!`);
         res.sendStatus(403);
         return;
     }    
 
     // Time limit for posting from one IP
     const now = Date.now();
-    if ((now - lastPostTimes[clientIp]) / 1000 < postLimitSecs) {
+    const secsAgo = (now - lastPostTimes[clientIp]) / 1000;
+    if (secsAgo < postLimitSecs) {
+        console.log(`Client ${clientIp} is posting too fast! (${secsAgo} secs ago}`);
         res.sendStatus(403);
         return;
     }
+    const prevPostTime = lastPostTimes[clientIp];
     lastPostTimes[clientIp] = now;
 
     const replyTo = req.body.replyTo && req.body.replyTo !== '0' ? req.body.replyTo : null;
-    await pool.query(
-        'insert into post (boardName, content, replyTo) values ($1, $2, $3)',
-        [req.params.boardName, req.body.content, replyTo]);
+    try {
+        await pool.query(
+            'insert into post (boardName, content, replyTo) values ($1, $2, $3)',
+            [req.params.boardName, req.body.content, replyTo]);
+        console.log(`Client ${clientIp} posted`);
+    } catch (e) {
+        lastPostTimes[clientIp] = prevPostTime;
+        console.error(e);
+        res.sendStatus(400);
+    }
+            
     res.sendStatus(200);
 });
 
