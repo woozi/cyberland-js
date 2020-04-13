@@ -1,0 +1,35 @@
+   _____      _               _                 _ 
+  / ____|    | |             | |               | |
+ | |    _   _| |__   ___ _ __| | __ _ _ __   __| |
+ | |   | | | | '_ \ / _ \ '__| |/ _` | '_ \ / _` |
+ | |___| |_| | |_) |  __/ |  | | (_| | | | | (_| |
+  \_____\__, |_.__/ \___|_|  |_|\__,_|_| |_|\__,_|
+         __/ |                                    
+        |___/                                     
+
+
+Boards:
+  - /t/ technology
+  - /n/ news
+  - /o/ off-topic
+  - /i/ images (experimental)
+
+Endpoints:
+    
+  - GET /<board>/    
+    
+    Retrieves posts for the specified board    
+    
+    Parameters:
+        * num=<N>          - number of results to retrieve
+        * thread=<postId>  - only return replies to the specified post
+        * offset=<N>       - number of results to skip
+    
+
+  - POST /<board>/
+
+    Post to a board or as a reply to other post
+    
+    Parameters:
+        * content=<text>   - content of the post, cannot be empty
+        * replyTo=<postId> - send the post as a reply to the specified post
