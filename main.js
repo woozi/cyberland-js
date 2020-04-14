@@ -66,7 +66,14 @@ app.get('/:boardName/?', async function (req, res) {
 // Post endpoint
 app.post('/:boardName/?', async function (req, res) {
     // Blacklist check
-    const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    let clientIp;
+    if (req.headers['x-forwarded-for']) {
+        const ips = req.headers['x-forwarded-for'].split(', ');
+        clientIp = ips[ips.length - 1];
+    } else {
+        clientIp = req.connection.remoteAddress;
+    }
+
     if (ipBlacklist.has(clientIp)) {
         console.log(`Client ${clientIp} is blacklisted!`);
         res.sendStatus(403);
