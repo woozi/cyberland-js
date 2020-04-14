@@ -11,9 +11,8 @@ module.exports = {
         create table if not exists post (
             boardName varchar(8),
             id integer default 0,
-            ipHash char(32) default '',
             postedTime timestamp default (now() at time zone 'utc'),
-            content varchar(500) not null,
+            content varchar(2000) not null,
             replyTo integer,
             bumpTime timestamp default (now() at time zone 'utc'),
             primary key (boardName, id),
